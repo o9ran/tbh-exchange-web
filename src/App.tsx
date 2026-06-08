@@ -42,6 +42,11 @@ export default function App() {
         update({ loading: false, initError: res.error });
       }
     })();
+
+    const unsub = window.electronAPI.onWalletConnected((addr: string) => {
+      update({ walletAddress: addr });
+    });
+    return () => unsub?.();
   }, []);
 
   const navigateTo = (page: Page) => update({ page, error: null });

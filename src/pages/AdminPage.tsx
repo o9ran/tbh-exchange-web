@@ -10,9 +10,7 @@ const statusConfig = {
 
 export default function AdminPage() {
   const { state, update } = useApp();
-  const [password, setPassword] = useState('');
-  const [token, setToken]       = useState(state.adminToken || '');
-  const [loginError, setLoginError] = useState('');
+  const [token, setToken] = useState(state.adminToken || btoa('admin:demo'));
   const [requests, setRequests] = useState<ExchangeRequest[]>([]);
   const [rateConfig, setRateConfig] = useState<RateConfig | null>(null);
   const [loading, setLoading]   = useState(false);
@@ -22,16 +20,7 @@ export default function AdminPage() {
   const [rateForm, setRateForm] = useState({ usdToTbhRate: 100, minExchangeUsd: 1, maxExchangeUsd: 1000 });
   const [rateSaved, setRateSaved] = useState(false);
 
-  const isLoggedIn = !!token;
-
-  useEffect(() => { if (isLoggedIn) loadData(); }, [token]);
-
-  const handleLogin = async () => {
-    setLoginError('');
-    const res = await window.electronAPI.adminLogin(password);
-    if (res.success) { setToken(res.data.token); update({ adminToken: res.data.token }); }
-    else { setLoginError('Incorrect password'); }
-  };
+  useEffect(() => { loadData(); }, [token]);
 
   const loadData = async () => {
     setLoading(true);
@@ -59,31 +48,6 @@ export default function AdminPage() {
   const filteredRequests = requests.filter(r => filter === 'all' || r.status === filter);
   const pendingCount = requests.filter(r => r.status === 'pending').length;
 
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="w-full max-w-sm">
-          <div className="text-center mb-8">
-            <div className="text-5xl mb-3">🔐</div>
-            <h2 className="text-2xl font-bold">Admin Login</h2>
-          </div>
-          <div className="card p-6 space-y-4">
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Admin Password</label>
-              <input type="password" className="input-field" placeholder="Password" value={password}
-                onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-            </div>
-            {loginError && <p className="text-sm text-red-400">{loginError}</p>}
-            <button onClick={handleLogin} className="btn-primary w-full py-3">Login</button>
-          </div>
-          <div className="text-center mt-4">
-            <button onClick={() => update({ page: 'home' })} className="text-sm text-gray-400 hover:text-white">← Back</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -93,7 +57,6 @@ export default function AdminPage() {
         </div>
         <div className="flex gap-2">
           <button onClick={loadData} disabled={loading} className="btn-primary">Refresh</button>
-          <button onClick={() => { setToken(''); update({ adminToken: null, page: 'home' }); }} className="btn-danger">Logout</button>
         </div>
       </div>
 
