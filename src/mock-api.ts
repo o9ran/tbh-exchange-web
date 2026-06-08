@@ -8,7 +8,7 @@ const TEST_USER = {
   isGuest: false,
 };
 
-const TEST_WALLET = 'HtqpDWB7DkZ2fN5w7camtwShvykAHYisGniQcjApNtL4';
+const TEST_WALLET = 'Demo1111111111111111111111111111111111111111';
 const TBH_MINT   = '98igMxnGoZiwEmnACxDMjfQ44VfDRgHXhSVXx7RZpump';
 // SHA-256 hash of the admin password (do not store plain text)
 const ADMIN_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
