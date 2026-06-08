@@ -10,7 +10,8 @@ const TEST_USER = {
 
 const TEST_WALLET = 'HtqpDWB7DkZ2fN5w7camtwShvykAHYisGniQcjApNtL4';
 const TBH_MINT   = '98igMxnGoZiwEmnACxDMjfQ44VfDRgHXhSVXx7RZpump';
-const ADMIN_PASSWORD = 'admin123';
+// SHA-256 hash of the admin password (do not store plain text)
+const ADMIN_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
 
 const DEMO_PRICES: Record<string, number> = {
   'Knight Boots (Arcana) A': 20.88,
@@ -178,7 +179,9 @@ function fail(error: string) { return { success: false, error }; }
   },
 
   adminLogin: async (password: string) => {
-    if (password === ADMIN_PASSWORD) {
+    const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+    const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (hash === ADMIN_HASH) {
       return ok({ token: btoa('admin:' + Date.now()) });
     }
     return fail('Invalid password');

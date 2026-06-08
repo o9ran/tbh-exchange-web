@@ -20,7 +20,7 @@ export interface AppState {
 const initialState: AppState = {
   page: 'home',
   steamUser: null,
-  walletAddress: 'HtqpDWB7DkZ2fN5w7camtwShvykAHYisGniQcjApNtL4',
+  walletAddress: null,
   inventory: [],
   selectedItems: [],
   myRequests: [],
