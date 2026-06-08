@@ -12,9 +12,10 @@ export default function HomePage() {
 
   const loadData = async () => {
     setLoading(true);
-    const res = await window.electronAPI.getMarketListings(false);
-    if (res.success) setListings(res.data.items ?? res.data);
-    setLoading(false);
+    await (window.electronAPI.getMarketListings as any)(false, (partial: any[]) => {
+      setListings([...partial]);
+      setLoading(false);
+    });
   };
 
   const hotItems = useMemo(() => {

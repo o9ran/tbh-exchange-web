@@ -94,7 +94,7 @@ export default function InventoryPage() {
                     {item.type && <span className="text-gray-400 truncate" style={{ fontSize: '9px' }}>{item.type}</span>}
                   </div>
                   <div className="flex items-center justify-center px-4 py-3">
-                    <img src={item.iconUrl} alt={item.name} className="w-28 h-28 object-contain" style={{ imageRendering: 'pixelated' }} onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3'; }} />
+                    <img src={item.iconUrl} alt={item.name} className="w-28 h-28 object-contain" loading="lazy" style={{ imageRendering: 'pixelated' }} onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3'; }} />
                   </div>
                   <div className="px-3 pb-3">
                     <p className="text-sm font-bold text-white leading-tight mb-2 line-clamp-2" title={item.name}>{item.name}</p>

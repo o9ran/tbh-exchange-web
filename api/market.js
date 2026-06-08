@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
       }).on('error', reject);
     });
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 's-maxage=300');
+    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
     res.json(data);
   } catch (err) {
     res.status(502).json({ error: 'upstream_error', detail: err.message });

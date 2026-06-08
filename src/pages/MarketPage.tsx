@@ -84,12 +84,13 @@ export default function MarketPage() {
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
     setLoading(true); setError(''); setLoadingMsg('Fetching data...');
-    const msgs = ['Fetching data...', 'Loading items...', 'Almost done...'];
-    let i = 0;
-    const t = setInterval(() => setLoadingMsg(msgs[Math.min(i++, msgs.length - 1)]), 1800);
     try {
-      const res = await window.electronAPI.getMarketListings(force);
-      clearInterval(t);
+      const res = await (window.electronAPI.getMarketListings as any)(force, (partial: any[]) => {
+        // Show page-1 results immediately while remaining pages load in background
+        setListings([...partial]);
+        setLoading(false);
+        setLoadingMsg('');
+      });
       if (res.success) {
         setListings(res.data.items ?? res.data);
         const updatedAt = new Date(res.data.updatedAt ?? Date.now());
@@ -98,7 +99,7 @@ export default function MarketPage() {
         setPage(0);
       } else { setError(res.error || 'Failed to fetch data'); }
     } catch (e: any) { setError(e.message); }
-    clearInterval(t); setLoading(false); isFetchingRef.current = false;
+    setLoading(false); isFetchingRef.current = false;
   };
 
   const doBackgroundRefresh = async () => {
@@ -179,7 +180,7 @@ export default function MarketPage() {
       className={`card p-3 cursor-pointer transition-all duration-150 hover:border-white/30 hover:bg-white/5 hover:-translate-y-0.5 ${selected?.marketHashName === item.marketHashName ? 'border-tbh-primary bg-tbh-primary/10' : ''}`}>
       <div className="flex justify-center mb-2.5">
         {item.iconUrl
-          ? <img src={item.iconUrl} alt={item.name} className="w-16 h-16 object-contain" style={{ imageRendering: 'pixelated' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          ? <img src={item.iconUrl} alt={item.name} className="w-16 h-16 object-contain" loading="lazy" style={{ imageRendering: 'pixelated' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           : <div className="w-16 h-16 bg-white/10 rounded flex items-center justify-center text-gray-600 text-2xl">?</div>}
       </div>
       <p className="text-xs font-semibold text-center leading-tight mb-0.5 line-clamp-1" title={item.name}>{item.name}</p>
@@ -397,7 +398,7 @@ export default function MarketPage() {
                         className={`border-b border-white/5 cursor-pointer transition-colors hover:bg-white/5 ${selected?.marketHashName === item.marketHashName ? 'bg-tbh-primary/10' : ''}`}>
                         <td className="px-4 py-2.5">
                           <div className="flex items-center gap-2.5">
-                            {item.iconUrl ? <img src={item.iconUrl} alt={item.name} className="w-8 h-8 object-contain rounded shrink-0" style={{ imageRendering: 'pixelated' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <div className="w-8 h-8 bg-white/10 rounded shrink-0" />}
+                            {item.iconUrl ? <img src={item.iconUrl} alt={item.name} className="w-8 h-8 object-contain rounded shrink-0" loading="lazy" style={{ imageRendering: 'pixelated' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <div className="w-8 h-8 bg-white/10 rounded shrink-0" />}
                             <span className="font-medium truncate max-w-[200px]" title={item.name}>{item.name}</span>
                           </div>
                         </td>

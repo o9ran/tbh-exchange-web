@@ -57,30 +57,32 @@ function saveStoredRequests(reqs: any[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(reqs));
 }
 
-async function fetchMarketListings(usdToTbhRate: number) {
+type ProgressCallback = (items: any[]) => void;
+
+async function fetchMarketListings(usdToTbhRate: number, onProgress?: ProgressCallback): Promise<any[]> {
   const allItems: any[] = [];
   try {
     const first = await fetch('/api/market?page=1');
     if (!first.ok) return [];
     const data = await first.json();
-    const total     = data?.total    ?? 0;
-    const pageSize  = data?.pageSize ?? 48;
+    const total      = data?.total    ?? 0;
+    const pageSize   = data?.pageSize ?? 48;
     const totalPages = Math.ceil(total / pageSize);
-    const items: any[] = data?.items ?? [];
-    parseItems(items, allItems, usdToTbhRate);
+    parseItems(data?.items ?? [], allItems, usdToTbhRate);
 
+    // Notify caller with page-1 results immediately
+    if (onProgress) onProgress([...allItems]);
+
+    // Fetch ALL remaining pages in parallel
     const remaining = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-    for (let i = 0; i < remaining.length; i += 4) {
-      const batch = remaining.slice(i, i + 4);
-      await Promise.all(batch.map(async page => {
-        try {
-          const r = await fetch(`/api/market?page=${page}`);
-          if (!r.ok) return;
-          const d = await r.json();
-          parseItems(d?.items ?? [], allItems, usdToTbhRate);
-        } catch { /* ignore */ }
-      }));
-    }
+    await Promise.all(remaining.map(async page => {
+      try {
+        const r = await fetch(`/api/market?page=${page}`);
+        if (!r.ok) return;
+        const d = await r.json();
+        parseItems(d?.items ?? [], allItems, usdToTbhRate);
+      } catch { /* ignore */ }
+    }));
   } catch { /* ignore */ }
   return allItems;
 }
@@ -118,9 +120,10 @@ function fail(error: string) { return { success: false, error }; }
 
   getUserInfo: async () => ok({ displayName: TEST_USER.displayName, avatarUrl: '' }),
 
-  getMarketListings: async (_forceRefresh?: boolean) => {
-    const items = await fetchMarketListings(DEFAULT_RATE_CONFIG.usdToTbhRate);
-    return ok({ items, updatedAt: new Date().toISOString(), fromCache: false, isRefreshing: false });
+  getMarketListings: (_forceRefresh?: boolean, onPartial?: (items: any[]) => void) => {
+    const updatedAt = new Date().toISOString();
+    return fetchMarketListings(DEFAULT_RATE_CONFIG.usdToTbhRate, onPartial)
+      .then(items => ok({ items, updatedAt, fromCache: false, isRefreshing: false }));
   },
 
   getMarketPrice: async (name: string) => ok({
